@@ -1,0 +1,172 @@
+---
+title: "Thesis"
+author: "Group 4 - Thesis"
+date: "2023-01-20"
+output: html_document
+---
+
+```{r}
+#Load Packages
+library(fpp2)
+library(dplyr)
+library(ggthemes)
+library(ggplot2)
+library(lmtest)
+library(forecast)
+library(knitr)
+library(graphics)
+library(gridExtra)
+```
+
+```{r}
+#Set Working Directory
+setwd("C:/Users/Admin/Documents/Thesis")
+# Importing the data from a csv file to the R environment
+CC = read.csv("CC GENERAL.csv")
+View(CC)
+summary(CC)
+frequency(CC)
+
+# Checking the properties of the dataset (variable name, variable type, number of variables)
+str(CC)
+names(CC)
+
+# Checking the number of variables and entries in the dataset
+dim(CC)
+```
+
+```{r}
+# ------------ CONVERSION OF FEATURES TO APPROPRIATE DATA TYPES ------------ #
+char_vars <- CC %>% select_if(is.character) %>% names()
+char_vars
+
+num_vars <- CC %>% select_if(is.numeric) %>% names()
+num_vars
+
+for (charvar in char_vars){
+  CC[,charvar] <- factor(CC[,charvar])
+}
+str(CC)
+
+```
+
+
+```{r}
+########## DATA PRE-PROCESSING #############
+
+# ------ DETECTION AND HANDLING QUALITY ISSUES ---------- # 
+
+CCcopy <- CC
+
+# >>>>>  MISSING VALUES <<<<<<<< #
+# Checking for missing values
+anyNA(CC)
+# Shows the number of missing values in each column
+sapply(CC, function(x) sum(is.na(x)))
+# >>>>> END OF MISSING VALUES <<<<<<<< #
+
+
+```
+
+
+```{r}
+# Checking the values of the numerical variables in the dataset and looking for points which do not conform to the structure of the data 
+for (numcol in num_vars){
+  # Descriptive Statistics
+  print(numcol)
+  print(summary(CC[,numcol]))
+}
+# Checking the values of the categorical variables in the dataset and looking for points which do not conform to the structure of the data
+for (categcol in char_vars){
+  print("--------------------Unique Values----------------------")
+  print(categcol)
+  print(unique(CC[,categcol]))
+}
+```
+
+```{r}
+# >>>>>  OUTLIERS <<<<<<<< #
+
+# Generating boxplots 
+par(mfrow=c(2,5))
+for (numcol in num_vars){
+  # Boxplot of the data
+  print(boxplot(CC[,numcol], main=paste("Boxplot of ", numcol), horizontal=TRUE))
+}
+
+# Identifying the outliers in each variable
+n_outliers <- sapply(CC[,num_vars], function(x) length(boxplot.stats(x)$out)) # no of. outliers
+n_outliers
+
+percent_outlier <-sapply(CC[,num_vars], function(x) length(boxplot.stats(x)$out)/nrow(CC)*100)
+percent_outlier
+
+outliers <- sapply(CC[,num_vars], function(x) boxplot.stats(x)$out) # outlier values
+outliers
+
+# selecting the variables which have outliers
+var_with_outliers <- n_outliers[n_outliers !=0] %>% names()
+var_with_outliers
+
+
+distrib_outliers <- function(vector, outvar){
+  par(mfrow=c(1,2))
+  hist(vector, main=paste("Distribution of ", var))
+  boxplot(vector, horizontal=TRUE, main=paste("Boxplot of the distribution of", var))
+  }
+
+for (var in var_with_outliers){
+  distrib_outliers(vector = CC[,var,], outvar = var)
+  print(paste("Summary of values for", var))
+  print(summary(CC[,var,]))
+}
+```
+
+```{r}
+# >>>>> DUPLICATE ROWS <<<<<<<< #
+
+# Find the number of duplicate rows in the dataset
+sum(duplicated(CC))
+
+# Removing duplicated rows by selecting the distinct ones
+CC <- dplyr::distinct(CC)
+
+dim(CC)
+
+# >>>>>  END OF DUPLICATE ROWS <<<<<<<< #
+
+#--------- END OF DETECTION AND HANDLING QUALITY ISSUES ---------# 
+
+########## END OF DATA PRE-PROCESSING #############
+```
+# FEATURE EXTRACTION
+### Built pcaChart function for exploratory data analysis on Variance
+```{r}
+pcaCharts <- function(x) {
+    x.var <- x$sdev ^ 2
+    x.pvar <- x.var/sum(x.var)
+    print("proportions of variance:")
+    print(x.pvar)
+    
+    par(mfrow=c(2,2))
+    plot(x.pvar,xlab="Principal component", ylab="Proportion of variance explained", ylim=c(0,1), type='b')
+    plot(cumsum(x.pvar),xlab="Principal component", ylab="Cumulative Proportion of variance explained", ylim=c(0,1), type='b')
+    screeplot(x)
+    screeplot(x,type="l")
+    par(mfrow=c(1,1))
+}
+```
+
+```{r}
+data("CC")
+rawdf <- na.omit(CC)
+names(CC) <- c("CUST_ID","BALANCE","BALANCE_INQUIRY","PURCHASES","ONEOFF_PURCHASES", "INSTALLMENTS_PURCHASES", "CASH_ADVANCE", "PURCHASES_FREQUENCY", "ONEOFF_PURCHASES_FREQUENCY", "PURCHASES_INSTALLMENTS_FREQUENCY", "CASH_ADVANCE_FREQUENCY", "CASH_ADVANCE_TRX", "PURCHASES_TRX", "CREDIT_LIMIT", "PAYMENTS", "MINIMUM_PAYMENTS", "PRC_FULL_PAYMENT", "TENURE")
+
+head(CC)
+```
+```{r}
+CC.pca <- prcomp(scale(CC),center = TRUE)
+#Checking output of pca. prcomp function returns standard deviation (sdev), rotation and loadings.
+names(CC.pca)
+```
+
