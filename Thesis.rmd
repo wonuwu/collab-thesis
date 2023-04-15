@@ -169,4 +169,4 @@ CC.pca <- prcomp(scale(CC),center = TRUE)
 #Checking output of pca. prcomp function returns standard deviation (sdev), rotation and loadings.
 names(CC.pca)
 ```
-
+#DLI PA MAG WORK ANG PCA NA CODE HEUNG
