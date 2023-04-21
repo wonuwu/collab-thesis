@@ -68,6 +68,19 @@ sapply(CC, function(x) sum(is.na(x)))
 
 ```
 
+```{r}
+#imputing missing values using its median
+mp <- CC$MINIMUM_PAYMENTS[is.na(CC$MINIMUM_PAYMENTS)]<- median(CC$MINIMUM_PAYMENTS,na.rm = TRUE)
+mp
+cl <- CC$CREDIT_LIMIT[is.na(CC$CREDIT_LIMIT)]<- median(CC$CREDIT_LIMIT,na.rm = TRUE)
+cl
+
+sapply(CC, function(x) sum(is.na(x)))
+
+glimpse(CC)
+```
+#no more missing values; imputed using median of the variable.
+
 
 ```{r}
 # Checking the values of the numerical variables in the dataset and looking for points which do not conform to the structure of the data 
