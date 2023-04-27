@@ -183,3 +183,74 @@ CC.pca <- prcomp(scale(CC),center = TRUE)
 names(CC.pca)
 ```
 #DLI PA MAG WORK ANG PCA NA CODE HEUNG
+
+
+
+##################################################################################################################################
+
+DBSCAN MODEL
+
+```{r}
+#loading packages
+
+# For Data Manipulation
+library(tidyverse) 
+
+# For Clustering algorithm
+library(cluster)
+library(fpc)
+library(dbscan)
+library(factoextra)
+
+```
+
+```{r}
+
+db <- Customers_pca[,-1]
+glimpse(db)
+```
+
+
+```{r}
+db1  <- lapply(db,as.numeric)
+str(db1)
+
+db_df <- data.frame(db1)
+head(db_df)
+```
+
+
+```{r}
+data("multishapes", package = "factoextra")
+df <- db_df[, 1:16]
+head(df)
+plot(df$BALANCE, df$PURCHASES)
+```
+
+
+```{r}
+#Method for determining the optimal eps value
+dbscan::kNNdistplot(db_df, k = 5000)
+abline(h = 0.15, lty = 2)
+```
+
+
+
+```{r}
+# creation of an object km which store the output of the function kmeans
+d <- dbscan::dbscan(db_df, eps = 18500, MinPts = 5000)
+d
+```
+
+```{r}
+# Plot DBSCAN results
+fviz_cluster(d, data = df, stand = FALSE,
+ellipse = FALSE, show.clust.cent = FALSE,
+geom = "point",palette = "jco", ggtheme = theme_classic())
+```
+
+
+
+
+
+
